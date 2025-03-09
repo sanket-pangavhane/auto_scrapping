@@ -59,109 +59,6 @@ browser = Browser(config=config)
 
 
 
-# @app.route('/get_records', methods=['POST'])
-# def run_agent():
-#     session  = Session()
-    
-    
-#     data = request.get_json()
-#     # employee_id = int(data.get("employee_id"))  
-#     # first_name = data.get("first_name")
-#     # last_name = data.get("last_name")
-#     # name = first_name+' '+last_name
-    
-#     eid = data.get("employee_id")
-    
-#     end_date = datetime.today().date()
-#     start_date = end_date - timedelta(days=3 * 365)  # Approximate 3 years
-    
-    
-    
-#     employee = session.query(
-#     Employee.id, 
-#     Employee.first_name, 
-#     Employee.last_name
-#     ).filter(Employee.id == eid).first()
-
-        
-#     employee_id = employee.id
-#     first_name = employee.first_name
-#     last_name = employee.last_name
-#     name = first_name+' '+last_name
-    
-#     # print(name)
-    
-#     existing_case = session.query(BackgroundVerification).filter_by().first()
-#     print(existing_case.)
-
-    
-#     if not existing_case:
-#             # print("Record already exists. Skipping insertion.")
-#         return {"msg" : "success"}
-    
-
-#     START_DATE = start_date.strftime('%Y-%m-%d')
-#     END_DATE = end_date.strftime('%Y-%m-%d')
-#     task = f"""
-#         "Visit https://ujsportal.pacourts.us/CaseSearch.Search for {name} with the date range from {START_DATE} to {END_DATE}.(Date format: yyyy-MM-dd. 
-#         Use calendar icon, click month/year at top-left to navigate quickly.)Immediately perform the search without waiting for input.
-#         From the results grid, scroll fully down to load all records.
-#         Extract and provide the docket_sheet links for each record listed.And stop"
-#     """
-    
-#     if not employee_id or not first_name:
-#         return jsonify({'error': 'No Data  provided for user.'}), 400
-    
-#     existing_case = session.query(BackgroundVerification).filter_by().first()
-
-    
-#     if not existing_case:
-#             # print("Record already exists. Skipping insertion.")
-#         return {"msg" : "success"}
-     
-#     async def run_agent_task(task):
-
-#         agent = Agent(
-#             browser=browser,
-#             task=task + rules,
-#             llm=ChatOpenAI(model="gpt-4o",),
-#             # controller=controller        
-#         )
-#         result = await agent.run()
-#         return result
-
-#     result = asyncio.run(run_agent_task(task))
-#     result = result.final_result()  # Extract the final result
-#     extracted_data = gpt_extraction(result)
-    
-    
-#     path = ''
-#     for result in extracted_data:
-#         docket_number = result.get("docket_number")
-#         docket_sheet = result.get("docket_sheet")
-#         # primary_participant = result.get("primary_participant")
-
-#         path = download_pdf(docket_number=docket_number, name=first_name+last_name, url=docket_sheet)
-        
-#         existing_case = session.query(BackgroundVerification).filter_by(verification_file_path=path).first()
-
-        
-#         if existing_case:
-#             # print("Record already exists. Skipping insertion.")
-#             continue
-#         else:
-#             # print("Inserting new record.")
-#             new_case = BackgroundVerification(
-#                 employee_id=employee_id,
-#                 verification_file_path=path,
-#                 file_type="pdf"
-#             )
-
-#             session.add(new_case)
-#             session.commit()
-#             # print("Simplified data inserted successfully!")
-   
-#     return {"msg":"success"}
 
 @app.route('/get_records', methods=['POST'])
 def run_agent():
@@ -196,7 +93,7 @@ def run_agent():
 
     if existing_case:
         # If a background verification record exists, return success
-        return jsonify({"msg": "Background verification already exists for this employee"}), 200
+        return jsonify({"msg": "success"}), 200
     
     # If no record exists, proceed with the agent and PDF download steps
     START_DATE = start_date.strftime('%Y-%m-%d')
@@ -247,8 +144,100 @@ def run_agent():
     
     return jsonify({"msg": "success"}), 200
 
- 
+
+
+
+
+
+
+
+
+# @app.route('/get_records', methods=['POST'])
+# def run_agent():
+#     session = Session()
+
+#     data = request.get_json()
+#     eid = data.get("employee_id")
+
+#     # Get employee details based on provided employee_id
+#     employee = session.query(
+#         Employee.id,
+#         Employee.first_name,
+#         Employee.last_name
+#     ).filter(Employee.id == eid).first()
+
+#     if not employee:
+#         return jsonify({'error': 'Employee not found'}), 404
+
+#     employee_id = employee.id
+#     first_name = employee.first_name
+#     last_name = employee.last_name
+#     name = first_name + ' ' + last_name
+
+#     # Check if a background verification record already exists for this employee
+#     existing_case = session.query(BackgroundVerification).filter_by(employee_id=employee_id).first()
     
+
+#     # If existing background verification record is found, return success immediately
+#     if existing_case.verification_file_path : 
+#         return jsonify({"msg": "success"}), 200
+
+#     # If no record exists, proceed with agent task
+#     end_date = datetime.today().date()
+#     start_date = end_date - timedelta(days=3 * 365)  # Approximate 3 years
+
+#     START_DATE = start_date.strftime('%Y-%m-%d')
+#     END_DATE = end_date.strftime('%Y-%m-%d')
+#     task = f"""
+#         "Visit https://ujsportal.pacourts.us/CaseSearch.Search for {name} with the date range from {START_DATE} to {END_DATE}.(Date format: yyyy-MM-dd. 
+#         Use calendar icon, click month/year at top-left to navigate quickly.) Immediately perform the search without waiting for input.
+#         From the results grid, scroll fully down to load all records.
+#         Extract and provide the docket_sheet links for each record listed. And stop"
+#     """
+
+#     # Ensure employee_id and first_name are present
+#     if not employee_id or not first_name:
+#         return jsonify({'error': 'Employee data is incomplete.'}), 400
+
+#     async def run_agent_task(task):
+#         agent = Agent(
+#             browser=browser,
+#             task=task + rules,
+#             llm=ChatOpenAI(model="gpt-4o",),
+#         )
+#         result = await agent.run()
+#         return result
+
+#     # Run agent to extract information
+#     result = asyncio.run(run_agent_task(task))
+#     result = result.final_result()  # Extract the final result
+#     extracted_data = gpt_extraction(result)
+
+#     # Process the extracted data and download the PDFs
+#     for data in extracted_data:
+#         docket_number = data.get("docket_number")
+#         docket_sheet = data.get("docket_sheet")
+
+#         # Download PDF
+#         path = download_pdf(docket_number=docket_number, name=first_name + last_name, url=docket_sheet)
+
+#         # Check if the verification record for this PDF already exists
+#         existing_case = session.query(BackgroundVerification).filter_by(verification_file_path=path).first()
+
+#         if not existing_case:
+#             # Insert a new record if not found
+#             new_case = BackgroundVerification(
+#                 employee_id=employee_id,
+#                 verification_file_path=path,
+#                 file_type="pdf"
+#             )
+#             session.add(new_case)
+#             session.commit()
+
+#     # Return success once all operations are complete
+#     return jsonify({"msg": "success"}), 200
+
+
 from flask import send_file, jsonify
 import os
 
@@ -280,11 +269,6 @@ def download_report(employee_id):
         # Return an error message if an exception occurs
         return jsonify({"error": str(e)}), 500
 
-
-    # finally:
-    #     cursor.close()
-    #     connection.close()
-    #     return jsonify({"error": "File not found"}), 404
 
 
 if __name__ == '__main__':
